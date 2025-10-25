@@ -1,6 +1,6 @@
 import unittest
 from htmlnode import HTMLNode, LeafNode, ParentNode
-from converters import text_node_to_html_node
+from converters import text_node_to_html_node, split_nodes_delimiter, extract_markdown_images, extract_markdown_links
 from textnode import TextNode, TextType
 
 class TestHTMLNode(unittest.TestCase):
@@ -78,6 +78,48 @@ class TestHTMLNode(unittest.TestCase):
         node = TextNode("Unknown", FakeType())
         with self.assertRaises(Exception):
             text_node_to_html_node(node)
+
+    def test_split_nodes_code(self):
+        node = TextNode("This is `code` here", TextType.TEXT)
+        result = split_nodes_delimiter([node], "`", TextType.CODE)
+        assert len(result) == 3
+        assert result[0].text == "This is "
+        assert result[1].text == "code"
+        assert result[1].text_type == TextType.CODE
+        assert result[2].text == " here"
+
+
+    def test_split_nodes_bold(self):
+        node = TextNode("This is **bold** text", TextType.TEXT)
+        result = split_nodes_delimiter([node], "**", TextType.BOLD)
+        assert len(result) == 3
+        assert result[1].text_type == TextType.BOLD
+
+
+    def test_split_nodes_multiple_formats(self):
+        node = TextNode("Mix of `code` and **bold**", TextType.TEXT)
+        nodes = split_nodes_delimiter([node], "`", TextType.CODE)
+        nodes = split_nodes_delimiter(nodes, "**", TextType.BOLD)
+        assert any(n.text_type == TextType.CODE for n in nodes)
+        assert any(n.text_type == TextType.BOLD for n in nodes)
+
+    def test_extract_markdown_images(self):
+        matches = extract_markdown_images(
+            "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png)"
+        )
+        self.assertListEqual([("image", "https://i.imgur.com/zjjcJKZ.png")], matches)
+
+    def test_extract_markdown_links(self):
+        matches = extract_markdown_links(
+            "This is text with a [link](https://boot.dev) and [another link](https://blog.boot.dev)"
+        )
+        self.assertListEqual(
+            [
+                ("link", "https://boot.dev"),
+                ("another link", "https://blog.boot.dev"),
+            ],
+            matches,
+        )
 
 if __name__ == "__main__":
     unittest.main()

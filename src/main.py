@@ -1,46 +1,36 @@
 import os
-from textnode import TextNode, TextType
-import os
+import sys
 import shutil
 from copystatic import copy_files_recursive
-from generate_page import generate_page, generate_pages_recursive
-
-
-#dir_path_static = "./static"
-#dir_path_public = "./public"
-def generate_site(content_dir, template_path, public_dir):
-    for root, dirs, files in os.walk(content_dir):
-        for filename in files:
-            if filename.endswith(".md"):
-                from_path = os.path.join(root, filename)
-                rel_path = os.path.relpath(from_path, content_dir)
-                dest_path = os.path.join(public_dir, rel_path)
-                dest_path = dest_path.replace(".md", ".html")
-
-                print(f"Generating page from {from_path} to {dest_path} using {template_path}")
-                generate_page(from_path, template_path, dest_path)
+from generate_page import generate_pages_recursive
 
 def main():
-    """print("Deleting public directory...")
-    if os.path.exists(dir_path_public):
-        shutil.rmtree(dir_path_public)
+    # 1️⃣ Basepath from CLI or default "/"
+    basepath = sys.argv[1] if len(sys.argv) > 1 else "/"
+    if not basepath.endswith("/"):
+        basepath += "/"
 
-    print("Copying static files to public directory...")
-    copy_files_recursive(dir_path_static, dir_path_public)"""
-    # 1. Delete `public` if it exists
-    if os.path.exists("public"):
-        shutil.rmtree("public")
+    # 2️⃣ Folder setup
+    static_dir = "static"
+    content_dir = "content"
+    output_dir = "docs"  # GitHub Pages expects this
+    template_path = "template.html"
 
-    # 2. Copy `static` to `public`
-    shutil.copytree("static", "public", dirs_exist_ok=True)
+    # 3️⃣ Clean output directory
+    if os.path.exists(output_dir):
+        print("🗑️  Deleting old docs directory...")
+        shutil.rmtree(output_dir)
 
-    # 3. Generate main page
-    generate_site("content", "template.html", "public")
-    #generate_page("content/index.md", "template.html", "public/index.html")
+    # 4️⃣ Copy static files
+    print("📁 Copying static files to docs directory...")
+    shutil.copytree(static_dir, output_dir, dirs_exist_ok=True)
 
-    #generate_pages_recursive("content", "template_path", public_dir)
+    # 5️⃣ Generate pages recursively
+    print(f"🛠️  Generating pages with basepath: {basepath}")
+    generate_pages_recursive(content_dir, template_path, output_dir, basepath)
 
-    print("✨ Site generation complete!")
+    print("✨ Site generation complete! All files are in /docs.")
+
 
 if __name__ == "__main__":
     main()

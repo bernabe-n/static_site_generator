@@ -3,7 +3,7 @@ from textnode import TextNode, TextType
 import os
 import shutil
 from copystatic import copy_files_recursive
-from generate_page import generate_page
+from generate_page import generate_page, generate_pages_recursive
 
 
 #dir_path_static = "./static"
@@ -37,6 +37,10 @@ def main():
     # 3. Generate main page
     generate_site("content", "template.html", "public")
     #generate_page("content/index.md", "template.html", "public/index.html")
+
+    #generate_pages_recursive("content", "template_path", public_dir)
+
+    print("✨ Site generation complete!")
 
 if __name__ == "__main__":
     main()

@@ -36,3 +36,19 @@ def generate_page(from_path, template_path, dest_path):
     # Write final HTML
     with open(dest_path, "w", encoding="utf-8") as f:
         f.write(full_html)
+
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+    # Loop through every item in the content directory
+    for entry in os.listdir(dir_path_content):
+        full_path = os.path.join(dir_path_content, entry)
+
+        # If it's a directory, recurse into it
+        if os.path.isdir(full_path):
+            new_dest_dir = os.path.join(dest_dir_path, entry)
+            generate_pages_recursive(full_path, template_path, new_dest_dir)
+
+        # If it's a markdown file, generate an HTML page
+        elif entry.endswith(".md"):
+            # Build destination HTML path (mirror the directory structure)
+            dest_html_filename = entry.replace(".md", ".html")
+            dest_html_path = os.path.join(dest_dir_path, dest_html_filename)
